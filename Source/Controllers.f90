@@ -6,6 +6,17 @@ MODULE Controllers
 
     IMPLICIT NONE
 
+    INTERFACE
+        INTEGER(C_INT) FUNCTION CalculateYawMisalignment(rdRaw, fwsRaw, rsRaw, powRaw, t, ym) bind(C, CalculateYawMisalignment)
+            REAL(C_DOUBLE) :: rdRaw
+            REAL(C_DOUBLE) :: fwsRaw
+            REAL(C_DOUBLE) :: rsRaw
+            REAL(C_DOUBLE) :: powRaw
+            INTEGER(C_LONG) :: t
+            REAL(C_DOUBLE), POINTER :: ym
+        END FUNCTION CalculateYawMisalignment
+    END INTERFACE
+
 CONTAINS
     SUBROUTINE PitchControl(avrSWAP, CntrPar, LocalVar, objInst)
     
@@ -139,7 +150,7 @@ CONTAINS
         TYPE(ControlParameters), INTENT(INOUT)    :: CntrPar
         TYPE(LocalVariables), INTENT(INOUT)       :: LocalVar
         TYPE(ObjectInstances), INTENT(INOUT)      :: objInst
-        
+
         !..............................................................................................................................
         ! Yaw control
         !..............................................................................................................................
@@ -165,6 +176,54 @@ CONTAINS
             END IF
         END IF
     END SUBROUTINE YawRateControl
+
+    SUBROUTINE YawRateControlViaBaram(avrSWAP, CntrPar, LocalVar, objInst)
+
+        USE DRC_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances
+
+        REAL(C_FLOAT), INTENT(INOUT) :: avrSWAP(*) ! The swap array, used to pass data to, and receive data from, the DLL controller.
+
+        REAL(C_DOUBLE) :: rdRaw
+        REAL(C_DOUBLE) :: fwsRaw
+        REAL(C_DOUBLE) :: rsRaw
+        REAL(C_DOUBLE) :: powRaw
+        INTEGER(C_LONG) :: t = 0 !?
+        REAL(C_DOUBLE), POINTER :: ym
+        INTEGER(C_INT) :: status
+
+        TYPE(ControlParameters), INTENT(INOUT)    :: CntrPar
+        TYPE(LocalVariables), INTENT(INOUT)       :: LocalVar
+        TYPE(ObjectInstances), INTENT(INOUT)      :: objInst
+
+        !..............................................................................................................................
+        ! Yaw control
+        !..............................................................................................................................
+
+        IF (CntrPar%Y_ControlMode == 1) THEN
+            avrSWAP(29) = 0                                      ! Yaw control parameter: 0 = yaw rate control
+            IF (LocalVar%Time >= LocalVar%Y_YawEndT) THEN        ! Check if the turbine is currently yawing
+                avrSWAP(48) = 0.0                                ! Set yaw rate to zero
+                rdRaw = DBLE(LocalVar%Y_M) ! Data type conversion?
+                fwsRaw = DBLE(LocalVar%WE_Vw)
+                rsRaw = DBLE(LocalVar%RotSpeed)
+                powRaw = DBLE(LocalVar%VS_GenPwr)
+
+                status = CalculateYawMisalignment(rdRaw, fwsRaw, rsRaw, powRaw, t, ym)
+                IF status != 0 THEN
+                    avrSWAP(48) = SIGN(CntrPar%Y_Rate, LocalVar%Y_MErr)        ! Set yaw rate to predefined yaw rate, the sign of the error is copied to the rate
+                    LocalVar%Y_AccErr = 0.0    ! "
+                    RETURN
+
+                IF (ABS(ym) >= CntrPar%Y_ErrThresh) THEN                                   ! double * float? Check if yaw misalignment surpasses the threshold
+                    LocalVar%Y_YawEndT = ABS(ym/CntrPar%Y_Rate) + LocalVar%Time        ! Yaw to compensate for the slow low pass filtered error
+                END IF
+            ELSE
+                avrSWAP(48) = SIGN(CntrPar%Y_Rate, LocalVar%Y_MErr)        ! Set yaw rate to predefined yaw rate, the sign of the error is copied to the rate
+                LocalVar%Y_AccErr = 0.0    ! "
+            END IF
+        END IF
+    END SUBROUTINE YawRateControlViaBaram
+
     
     SUBROUTINE IPC(CntrPar, LocalVar, objInst)
         !-------------------------------------------------------------------------------------------------------------------------------
