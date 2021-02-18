@@ -5,7 +5,7 @@
  *      Author: Inwoo Chung (gutomitai@cosw.space)
  */
 
-#include "Python.h"
+#include <Python.h>
 #define HOST_COMMAND_URL "http:///localhost:5000/command"
 
 
@@ -22,7 +22,7 @@ int CalculateYawMisalignment(double rdRaw
 
 	Py_Initialize();
 	pName = PyUnicode_DecodeFSDefault(moduleName);
-	pModule = PyImport_import(pName);
+	pModule = PyImport_Import(pName);
 	Py_DECREF(pName);
 
 	if (pModule != NULL) {

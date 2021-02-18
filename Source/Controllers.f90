@@ -7,13 +7,13 @@ MODULE Controllers
     IMPLICIT NONE
 
     INTERFACE
-        INTEGER(C_INT) FUNCTION CalculateYawMisalignment(rdRaw, fwsRaw, rsRaw, powRaw, t, ym) bind(C, CalculateYawMisalignment)
-            REAL(C_DOUBLE) :: rdRaw
-            REAL(C_DOUBLE) :: fwsRaw
-            REAL(C_DOUBLE) :: rsRaw
-            REAL(C_DOUBLE) :: powRaw
-            INTEGER(C_LONG) :: t
-            REAL(C_DOUBLE), POINTER :: ym
+        INTEGER(4) FUNCTION CalculateYawMisalignment(rdRaw, fwsRaw, rsRaw, powRaw, t, ym) bind(C, NAME='CalculateYawMisalignment')
+            REAL(8), VALUE :: rdRaw
+            REAL(8), VALUE :: fwsRaw
+            REAL(8), VALUE :: rsRaw
+            REAL(8), VALUE :: powRaw
+            INTEGER(8), VALUE :: t
+            REAL(8) :: ym
         END FUNCTION CalculateYawMisalignment
     END INTERFACE
 
@@ -183,13 +183,13 @@ CONTAINS
 
         REAL(C_FLOAT), INTENT(INOUT) :: avrSWAP(*) ! The swap array, used to pass data to, and receive data from, the DLL controller.
 
-        REAL(C_DOUBLE) :: rdRaw
-        REAL(C_DOUBLE) :: fwsRaw
-        REAL(C_DOUBLE) :: rsRaw
-        REAL(C_DOUBLE) :: powRaw
-        INTEGER(C_LONG) :: t = 0 !?
-        REAL(C_DOUBLE), POINTER :: ym
-        INTEGER(C_INT) :: status
+        REAL(8) :: rdRaw
+        REAL(8) :: fwsRaw
+        REAL(8) :: rsRaw
+        REAL(8) :: powRaw
+        INTEGER(8) :: t = 0
+        REAL(8) :: ym
+        INTEGER(4) :: status
 
         TYPE(ControlParameters), INTENT(INOUT)    :: CntrPar
         TYPE(LocalVariables), INTENT(INOUT)       :: LocalVar
@@ -209,10 +209,11 @@ CONTAINS
                 powRaw = DBLE(LocalVar%VS_GenPwr)
 
                 status = CalculateYawMisalignment(rdRaw, fwsRaw, rsRaw, powRaw, t, ym)
-                IF status != 0 THEN
+                IF (status /= 0) THEN
                     avrSWAP(48) = SIGN(CntrPar%Y_Rate, LocalVar%Y_MErr)        ! Set yaw rate to predefined yaw rate, the sign of the error is copied to the rate
                     LocalVar%Y_AccErr = 0.0    ! "
                     RETURN
+                END IF
 
                 IF (ABS(ym) >= CntrPar%Y_ErrThresh) THEN                                   ! double * float? Check if yaw misalignment surpasses the threshold
                     LocalVar%Y_YawEndT = ABS(ym/CntrPar%Y_Rate) + LocalVar%Time        ! Yaw to compensate for the slow low pass filtered error
