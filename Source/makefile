@@ -17,13 +17,15 @@ BITS = 64
 
 DLL_DIR     = .
 
-C_SOURCE_FILE = BaramInterf.c
+SOURCES = BaramInterf.c
 SOURCE_FILE = Constants.f90 DRC_Types.f90 Functions.f90 Filters.f90 ReadSetParameters.f90 Controllers.f90 DISCON.f90
 
    # Name of compiler and flags for Baram interface.
+PYTHON_CONFIG = python3.6-config
+PYTHON_CONFIG_CFLAGS = $$($(PYTHON_CONFIG) --cflags)
+PYTHON_CONFIG_LDFLAGS = $$($(PYTHON_CONFIG) --ldflags)
 CC			= gcc
-CFLAGs  	= -m$(BITS) -Wall -Werror
-CLDFLAGS 	= -shared
+CFLAGS  	= -O2 -m$(BITS) $(PYTHON_CONFIG_CFLAGS)
 
 ifneq ($(UNAME), Darwin)
    CFLAGS     := $(CFLAGS) -fPIC
@@ -50,7 +52,22 @@ DEST_DIR    = ../DISCON
 
    # System-specific settings.
 
-ifeq ($(OS),Windows_NT)
+ifeq ($(OS),Windows_NT) 
+
+ifeq ($(CYGWIN), 1)
+
+   FFLAGS := $(FFLAGS) -DIMPLICIT_DLLEXPORT
+
+      # Cygwin.
+   DEL_CMD   = rm
+   EXE_EXT   = _gwin$(BITS).so
+   INTER_DIR = Obj_win$(BITS)
+   MD_CMD    = @mkdir -p
+   OBJ_EXT   = .o
+   PATH_SEP  = /
+   SYS_FILE  = SysGnuWin
+   BARAMI_LIB_EXT = baraminterface.so
+else
       # Windows
    DEL_CMD   = del
    EXE_EXT   = _gwin$(BITS).dll
@@ -59,6 +76,9 @@ ifeq ($(OS),Windows_NT)
    OBJ_EXT   = .obj
    PATH_SEP  = \\
    SYS_FILE  = SysGnuWin
+   BARAMI_LIB_EXT = baraminterface.dll
+endif
+
 else
 
    FFLAGS := $(FFLAGS) -DIMPLICIT_DLLEXPORT
@@ -71,6 +91,7 @@ else
    OBJ_EXT   = .o
    PATH_SEP  = /
    SYS_FILE  = SysGnuLinux
+   BARAMI_LIB_EXT = baraminterface.so
 
    UNAME := $(shell uname -s)
 
@@ -95,7 +116,11 @@ ALL_OBJS      = $(DLL_SOURCES:.f90=.obj)
    # Rule to do everything.
 
 all:     default
-default:  $(INTER_DIR) $(DEST_DIR)/$(OUTPUT_NAME)$(EXE_EXT)
+default:  $(BARAMI_LIB_EXT) $(INTER_DIR) $(DEST_DIR)/$(OUTPUT_NAME)$(EXE_EXT)
+
+   # Build libbaraminterface shared library.
+$(BARAMI_LIB_EXT): $(SOURCES)
+	$(CC) $(CFLAGS) -shared -o $(BARAMI_LIB_EXT) $(SOURCES) $(PYTHON_CONFIG_LDFLAGS)
 
    # General rules for compliling the files.
 
@@ -117,11 +142,11 @@ $(INTER_DIR):
 
 $(DEST_DIR)/$(OUTPUT_NAME)$(EXE_EXT): $(ALL_OBJS) | $(INTER_DIR)
 	$(FC) $(LDFLAGS) -I $(INTER_DIR) -o $(DEST_DIR)/$(OUTPUT_NAME)$(EXE_EXT) \
-	$(foreach src, $(ALL_OBJS), $(addprefix $(INTER_DIR)/,$(src)))
+	$(foreach src, $(ALL_OBJS), $(addprefix $(INTER_DIR)/,$(src))) $(BARAMI_LIB_EXT)
 
    # Cleanup afterwards.
 
 clean:
-	$(DEL_CMD) $(INTER_DIR)$(PATH_SEP)*.mod $(INTER_DIR)$(PATH_SEP)*.obj
+	$(DEL_CMD) $(INTER_DIR)$(PATH_SEP)*.mod $(INTER_DIR)$(PATH_SEP)*.obj $(BARAMI_LIB_EXT)
 
 #gfortran -shared -O2 -m32 -fbacktrace -ffree-line-length-none -x f95-cpp-input -C ../CertTest/5MW_Baseline/ServoData/Source/DISCON.f90
