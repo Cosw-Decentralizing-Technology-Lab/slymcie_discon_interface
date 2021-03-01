@@ -16,9 +16,15 @@ int CalculateYawMisalignment(double rdRaw
 			, long tRaw
 			, double *ym)
 {
-	PyObject *pName, *pModule, *pFunc, *pComDict, *pYM, *pArgs;
+	PyObject *pName, *pModule, *pFunc, *pComDict, *pYM, *pArgs, *pResponse, *pJsonFunc, *pJsonDict, *pStatus;
 	const char *moduleName = "requests";
 	const char *funcName = "post";
+	const char *jsonFuncName = "json";
+	const char *statusName = "status";
+	const char *ymName = "ym";
+	const char *descriptionName = "description";
+	char *status;
+	char *description;
 
 	Py_Initialize();
 	pName = PyUnicode_DecodeFSDefault(moduleName);
@@ -40,23 +46,81 @@ int CalculateYawMisalignment(double rdRaw
 			PyTuple_SetItem(pArgs, 0, PyUnicode_FromString(HOST_COMMAND_URL));
 			PyTuple_SetItem(pArgs, 1, pComDict);
 
-			pYM = PyObject_CallObject(pFunc, pArgs);
+			pResponse = PyObject_CallObject(pFunc, pArgs);
 
-			Py_DECREF(pArgs);
-			Py_DECREF(pComDict); //?
-			Py_DECREF(pFunc);
-			Py_DECREF(pModule);
+			// Check exception.
+			if (pResponse != NULL) {
+				pJsonFunc = PyObject_GetAttrString(pResponse, jsonFuncName);
 
-			if(pYM != NULL) {
-				*ym = PyLong_AsLong(pYM);
-			}
-			else {
-				Py_DECREF(pYM);
-				PyErr_Print();
+				if (pJsonFunc && PyCallable_Check(pJsonFunc)) {
+					pJsonDict = PyObject_CallObject(pJsonFunc, NULL);
+
+					if (pJsonDict == NULL) {
+						if (PyErr_Occurred())
+							PyErr_Print();
+
+						Py_XDECREF(pJsonFunc);
+						Py_DECREF(pResponse);
+						Py_DECREF(pArgs);
+						Py_DECREF(pComDict); //?
+						Py_XDECREF(pFunc);
+						Py_DECREF(pModule);
+						return 1;
+					} else {
+						// Get status.
+						pName = PyUnicode_DecodeFSDefault(statusName);
+						pStatus = PyDict_GetItem(pJsonDict, pName);
+						Py_DECREF(pName);
+						status = PyUnicode_AS_DATA(pStatus); //?
+
+						if (strcmp(status, "error") != 0) {
+							// Get yaw misalignment.
+							pName = PyUnicode_DecodeFSDefault(ymName);
+							pYM = PyDict_GetItem(pJsonDict, pName);
+							Py_DECREF(pName);
+
+							*ym = PyFloat_AS_DOUBLE(pYM);
+
+							Py_DECREF(pYM);
+						} else {
+							Py_DECREF(pStatus);
+							Py_DECREF(pJsonDict);
+							Py_XDECREF(pJsonFunc);
+							Py_DECREF(pResponse);
+							Py_DECREF(pArgs);
+							Py_DECREF(pComDict); //?
+							Py_XDECREF(pFunc);
+							Py_DECREF(pModule);
+							return 1;
+						}
+
+						Py_DECREF(pStatus);
+						Py_DECREF(pJsonDict);
+						Py_XDECREF(pJsonFunc);
+						Py_DECREF(pResponse);
+						Py_DECREF(pArgs);
+						Py_DECREF(pComDict); //?
+					}
+				} else {
+					if (PyErr_Occurred())
+						PyErr_Print();
+
+					Py_DECREF(pArgs);
+					Py_DECREF(pComDict); //?
+					Py_XDECREF(pFunc); //?
+					Py_DECREF(pModule);
+					return 1;
+				}
+			} else {
+				if (PyErr_Occurred())
+					PyErr_Print();
+
+				Py_DECREF(pArgs);
+				Py_DECREF(pComDict); //?
+				Py_XDECREF(pFunc);
+				Py_DECREF(pModule);
 				return 1;
 			}
-
-			Py_DECREF(pYM);
 		}
 		else {
 			if (PyErr_Occurred())

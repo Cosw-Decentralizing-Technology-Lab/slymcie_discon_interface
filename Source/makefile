@@ -17,8 +17,17 @@ BITS = 64
 
 DLL_DIR     = .
 
+C_SOURCE_FILE = BaramInterf.c
 SOURCE_FILE = Constants.f90 DRC_Types.f90 Functions.f90 Filters.f90 ReadSetParameters.f90 Controllers.f90 DISCON.f90
 
+   # Name of compiler and flags for Baram interface.
+CC			= gcc
+CFLAGs  	= -m$(BITS) -Wall -Werror
+CLDFLAGS 	= -shared
+
+ifneq ($(UNAME), Darwin)
+   CFLAGS     := $(CFLAGS) -fPIC
+endif
 
    # Name of compiler to use and flags to use.
 FC      = gfortran
