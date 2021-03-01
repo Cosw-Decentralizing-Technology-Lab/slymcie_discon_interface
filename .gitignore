@@ -17,3 +17,5 @@ Scripts/CompileDISCONHereCopyRun\.cmd
 # Temp Files
 *~
 *.u2d
+/DISCON/
+/.gitignore
