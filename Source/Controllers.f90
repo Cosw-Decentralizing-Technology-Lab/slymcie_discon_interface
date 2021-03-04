@@ -147,6 +147,14 @@ CONTAINS
     
         REAL(C_FLOAT), INTENT(INOUT) :: avrSWAP(*) ! The swap array, used to pass data to, and receive data from, the DLL controller.
     
+        REAL(8) :: rdRaw
+        REAL(8) :: fwsRaw
+        REAL(8) :: rsRaw
+        REAL(8) :: powRaw
+        INTEGER(8) :: t = 0
+        REAL(8) :: ym
+        INTEGER(4) :: status
+
         TYPE(ControlParameters), INTENT(INOUT)    :: CntrPar
         TYPE(LocalVariables), INTENT(INOUT)       :: LocalVar
         TYPE(ObjectInstances), INTENT(INOUT)      :: objInst
@@ -174,32 +182,7 @@ CONTAINS
                 LocalVar%Y_ErrLPFSlow = LPFilter(LocalVar%Y_MErr, LocalVar%DT, CntrPar%Y_omegaLPSlow, LocalVar%iStatus, .TRUE., objInst%instLPF)        ! Slow low pass filtered yaw error with a frequency of 1/60
                 LocalVar%Y_AccErr = 0.0    ! "
             END IF
-        END IF
-    END SUBROUTINE YawRateControl
-
-    SUBROUTINE YawRateControlViaBaram(avrSWAP, CntrPar, LocalVar, objInst)
-
-        USE DRC_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances
-
-        REAL(C_FLOAT), INTENT(INOUT) :: avrSWAP(*) ! The swap array, used to pass data to, and receive data from, the DLL controller.
-
-        REAL(8) :: rdRaw
-        REAL(8) :: fwsRaw
-        REAL(8) :: rsRaw
-        REAL(8) :: powRaw
-        INTEGER(8) :: t = 0
-        REAL(8) :: ym
-        INTEGER(4) :: status
-
-        TYPE(ControlParameters), INTENT(INOUT)    :: CntrPar
-        TYPE(LocalVariables), INTENT(INOUT)       :: LocalVar
-        TYPE(ObjectInstances), INTENT(INOUT)      :: objInst
-
-        !..............................................................................................................................
-        ! Yaw control
-        !..............................................................................................................................
-
-        IF (CntrPar%Y_ControlMode == 1) THEN
+        ELSEIF (CntrPar%Y_ControlMode == 3) THEN
             avrSWAP(29) = 0                                      ! Yaw control parameter: 0 = yaw rate control
             IF (LocalVar%Time >= LocalVar%Y_YawEndT) THEN        ! Check if the turbine is currently yawing
                 avrSWAP(48) = 0.0                                ! Set yaw rate to zero
@@ -223,8 +206,7 @@ CONTAINS
                 LocalVar%Y_AccErr = 0.0    ! "
             END IF
         END IF
-    END SUBROUTINE YawRateControlViaBaram
-
+    END SUBROUTINE YawRateControl
     
     SUBROUTINE IPC(CntrPar, LocalVar, objInst)
         !-------------------------------------------------------------------------------------------------------------------------------

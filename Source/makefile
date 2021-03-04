@@ -27,14 +27,10 @@ PYTHON_CONFIG_LDFLAGS = $$($(PYTHON_CONFIG) --ldflags)
 CC			= gcc
 CFLAGS  	= -O2 -m$(BITS) $(PYTHON_CONFIG_CFLAGS)
 
-ifneq ($(UNAME), Darwin)
-   CFLAGS     := $(CFLAGS) -fPIC
-endif
-
    # Name of compiler to use and flags to use.
 FC      = gfortran
 FFLAGS  = -O2 -m$(BITS) -fbacktrace -ffree-line-length-none -x f95-cpp-input -C
-LDFLAGS = -shared -O2 -m$(BITS) -fbacktrace
+LDFLAGS = -O2 -m$(BITS) -fbacktrace
 
 # other useful gfortran options:
 #  -fdefault-real-8 -fcheck=bounds -std=f2003 -O0 -v
@@ -59,16 +55,20 @@ ifeq ($(CYGWIN), 1)
    FFLAGS := $(FFLAGS) -DIMPLICIT_DLLEXPORT
 
       # Cygwin.
+   CFLAGS     := $(CFLAGS) -shared
+   LDFLAGS    := $(LDFLAGS) -mdll
    DEL_CMD   = rm
-   EXE_EXT   = _gwin$(BITS).so
+   EXE_EXT   = _gwin$(BITS).dll
    INTER_DIR = Obj_win$(BITS)
    MD_CMD    = @mkdir -p
-   OBJ_EXT   = .o
+   OBJ_EXT   = .obj
    PATH_SEP  = /
    SYS_FILE  = SysGnuWin
-   BARAMI_LIB_EXT = baraminterface.so
+   BARAMI_LIB_EXT = libbaram.so
 else
       # Windows
+   CFLAGS     := $(CFLAGS) -shared
+   LDFLAGS    := $(LDFLAGS) -shared
    DEL_CMD   = del
    EXE_EXT   = _gwin$(BITS).dll
    INTER_DIR = Obj_win$(BITS)
@@ -84,6 +84,8 @@ else
    FFLAGS := $(FFLAGS) -DIMPLICIT_DLLEXPORT
 
       # Linux
+   CFLAGS     := $(CFLAGS) -shared
+   LDFLAGS    := $(LDFLAGS) -shared
    DEL_CMD   = rm -f
    EXE_EXT   = _glin$(BITS).so
    INTER_DIR = Obj_lin$(BITS)
@@ -91,11 +93,12 @@ else
    OBJ_EXT   = .o
    PATH_SEP  = /
    SYS_FILE  = SysGnuLinux
-   BARAMI_LIB_EXT = baraminterface.so
+   BARAMI_LIB_EXT = libbaram.so
 
    UNAME := $(shell uname -s)
 
    ifneq ($(UNAME), Darwin)
+      CFLAGS     := $(CFLAGS) -fPIC
       FFLAGS     := $(FFLAGS) -fPIC
       LDFLAGS    := $(LDFLAGS) -fPIC
    endif
@@ -120,7 +123,7 @@ default:  $(BARAMI_LIB_EXT) $(INTER_DIR) $(DEST_DIR)/$(OUTPUT_NAME)$(EXE_EXT)
 
    # Build libbaraminterface shared library.
 $(BARAMI_LIB_EXT): $(SOURCES)
-	$(CC) $(CFLAGS) -shared -o $(BARAMI_LIB_EXT) $(SOURCES) $(PYTHON_CONFIG_LDFLAGS)
+	$(CC) $(CFLAGS) -o $(BARAMI_LIB_EXT) $(SOURCES) $(PYTHON_CONFIG_LDFLAGS)
 
    # General rules for compliling the files.
 

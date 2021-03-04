@@ -6,7 +6,7 @@
  */
 
 #include <Python.h>
-#define HOST_COMMAND_URL "http:///localhost:5000/command"
+#define HOST_COMMAND_URL "http://localhost:5000/command"
 
 
 int CalculateYawMisalignment(double rdRaw
@@ -16,7 +16,7 @@ int CalculateYawMisalignment(double rdRaw
 			, long tRaw
 			, double *ym)
 {
-	PyObject *pName, *pModule, *pFunc, *pComDict, *pYM, *pArgs, *pResponse, *pJsonFunc, *pJsonDict, *pStatus;
+	PyObject *pName, *pModule, *pFunc, *pComDict, *pYM, *pArgs, *pKwargs, *pResponse, *pJsonFunc, *pJsonDict, *pStatus;
 	const char *moduleName = "requests";
 	const char *funcName = "post";
 	const char *jsonFuncName = "json";
@@ -42,11 +42,13 @@ int CalculateYawMisalignment(double rdRaw
 			PyDict_SetItemString(pComDict, "pow_raw", PyFloat_FromDouble(powRaw));
 			PyDict_SetItemString(pComDict, "t_raw", PyFloat_FromDouble(tRaw));
 
-			pArgs = PyTuple_New(2);
+			pArgs = PyTuple_New(1);
 			PyTuple_SetItem(pArgs, 0, PyUnicode_FromString(HOST_COMMAND_URL));
-			PyTuple_SetItem(pArgs, 1, pComDict);
 
-			pResponse = PyObject_CallObject(pFunc, pArgs);
+			pKwargs = PyDict_New();
+			PyDict_SetItemString(pKwargs, 'json', pComDict);
+
+			pResponse = PyObject_Call(pFunc, pArgs, pKwargs);
 
 			// Check exception.
 			if (pResponse != NULL) {
@@ -62,6 +64,7 @@ int CalculateYawMisalignment(double rdRaw
 						Py_XDECREF(pJsonFunc);
 						Py_DECREF(pResponse);
 						Py_DECREF(pArgs);
+						Py_DECREF(pKwargs);
 						Py_DECREF(pComDict); //?
 						Py_XDECREF(pFunc);
 						Py_DECREF(pModule);
@@ -88,6 +91,7 @@ int CalculateYawMisalignment(double rdRaw
 							Py_XDECREF(pJsonFunc);
 							Py_DECREF(pResponse);
 							Py_DECREF(pArgs);
+							Py_DECREF(pKwargs);
 							Py_DECREF(pComDict); //?
 							Py_XDECREF(pFunc);
 							Py_DECREF(pModule);
@@ -99,6 +103,7 @@ int CalculateYawMisalignment(double rdRaw
 						Py_XDECREF(pJsonFunc);
 						Py_DECREF(pResponse);
 						Py_DECREF(pArgs);
+						Py_DECREF(pKwargs);
 						Py_DECREF(pComDict); //?
 					}
 				} else {
@@ -106,6 +111,7 @@ int CalculateYawMisalignment(double rdRaw
 						PyErr_Print();
 
 					Py_DECREF(pArgs);
+					Py_DECREF(pKwargs);
 					Py_DECREF(pComDict); //?
 					Py_XDECREF(pFunc); //?
 					Py_DECREF(pModule);
@@ -116,6 +122,7 @@ int CalculateYawMisalignment(double rdRaw
 					PyErr_Print();
 
 				Py_DECREF(pArgs);
+				Py_DECREF(pKwargs);
 				Py_DECREF(pComDict); //?
 				Py_XDECREF(pFunc);
 				Py_DECREF(pModule);

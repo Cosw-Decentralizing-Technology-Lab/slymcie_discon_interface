@@ -59,7 +59,7 @@ TYPE, PUBLIC :: ControlParameters
     REAL(4)                             :: WE_Jtot                      ! Total drivetrain inertia, including blades, hub and casted generator inertia to LSS [kg m^2]
     REAL(4)                             :: WE_RhoAir                    ! Air density [kg m^-3]
     
-    INTEGER(4)                          :: Y_ControlMode                ! Yaw control mode: (0 = no yaw control, 1 = yaw rate control, 2 = yaw-by-IPC)
+    INTEGER(4)                          :: Y_ControlMode                ! Yaw control mode: (0 = no yaw control, 1 = yaw rate control, 2 = yaw-by-IPC, 3 = yaw rate control by baram)
     REAL(4)                             :: Y_ErrThresh                  ! Error threshold [rad]. Turbine begins to yaw when it passes this. (104.71975512) -- 1.745329252
     REAL(4)                             :: Y_IPC_IntSat                 ! Integrator saturation (maximum signal amplitude contrbution to pitch from yaw-by-IPC)
     INTEGER(4)                          :: Y_IPC_n                      ! Number of controller gains (yaw-by-IPC)
