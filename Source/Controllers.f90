@@ -7,6 +7,16 @@ MODULE Controllers
     IMPLICIT NONE
 
     INTERFACE
+        INTEGER(4) FUNCTION InitBaramInterface() bind(C, NAME='InitBaramInterface')
+        END FUNCTION InitBaramInterface
+    END INTERFACE
+
+    INTERFACE
+        INTEGER(4) FUNCTION UninitBaramInterface() bind(C, NAME='UninitBaramInterface')
+        END FUNCTION UninitBaramInterface
+    END INTERFACE
+
+    INTERFACE
         INTEGER(4) FUNCTION CalculateYawMisalignment(rdRaw, fwsRaw, rsRaw, powRaw, t, ym) bind(C, NAME='CalculateYawMisalignment')
             REAL(8), VALUE :: rdRaw
             REAL(8), VALUE :: fwsRaw
@@ -183,18 +193,23 @@ CONTAINS
                 LocalVar%Y_AccErr = 0.0    ! "
             END IF
         ELSEIF (CntrPar%Y_ControlMode == 3) THEN
+            IF (LocalVar%iStatus == 0) THEN
+                status = InitBaramInterface()
+                if (status == 0) THEN
+                    RETURN
+                END IF
+            END IF
+
             avrSWAP(29) = 0                                      ! Yaw control parameter: 0 = yaw rate control
             IF (LocalVar%Time >= LocalVar%Y_YawEndT) THEN        ! Check if the turbine is currently yawing
                 avrSWAP(48) = 0.0                                ! Set yaw rate to zero
-                rdRaw = DBLE(LocalVar%Y_M) ! Data type conversion?
-                fwsRaw = DBLE(LocalVar%WE_Vw)
-                rsRaw = DBLE(LocalVar%RotSpeed)
-                powRaw = DBLE(LocalVar%VS_GenPwr)
+                rdRaw = REAL(LocalVar%Y_M)
+                fwsRaw = REAL(LocalVar%WE_Vw)
+                rsRaw = REAL(LocalVar%RotSpeed)
+                powRaw = REAL(LocalVar%VS_GenPwr)
 
                 status = CalculateYawMisalignment(rdRaw, fwsRaw, rsRaw, powRaw, t, ym)
-                IF (status /= 0) THEN
-                    avrSWAP(48) = SIGN(CntrPar%Y_Rate, LocalVar%Y_MErr)        ! Set yaw rate to predefined yaw rate, the sign of the error is copied to the rate
-                    LocalVar%Y_AccErr = 0.0    ! "
+                IF (status == 0) THEN
                     RETURN
                 END IF
 
@@ -203,7 +218,13 @@ CONTAINS
                 END IF
             ELSE
                 avrSWAP(48) = SIGN(CntrPar%Y_Rate, LocalVar%Y_MErr)        ! Set yaw rate to predefined yaw rate, the sign of the error is copied to the rate
-                LocalVar%Y_AccErr = 0.0    ! "
+            END IF
+
+            IF (LocalVar%iStatus == -1) THEN
+                status = UninitBaramInterface()
+                if (status == 0) THEN
+                    RETURN
+                END IF
             END IF
         END IF
     END SUBROUTINE YawRateControl

@@ -8,6 +8,8 @@
 #ifndef CONTROLLERS_H_
 #define CONTROLLERS_H_
 
+extern int InitBaramInterface();
+extern int UninitBaramInterface();
 extern int CalculateYawMisalignment(double rdRaw
 			, double fwsRaw
 			, double rsRaw

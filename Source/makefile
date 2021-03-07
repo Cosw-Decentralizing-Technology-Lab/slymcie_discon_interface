@@ -29,7 +29,7 @@ CFLAGS  	= -O2 -m$(BITS) $(PYTHON_CONFIG_CFLAGS)
 
    # Name of compiler to use and flags to use.
 FC      = gfortran
-FFLAGS  = -O2 -m$(BITS) -fbacktrace -ffree-line-length-none -x f95-cpp-input -C
+FFLAGS  = -O2 -m$(BITS) -fbacktrace -ffree-line-length-none -x f95-cpp-input -C -g -ggdb
 LDFLAGS = -O2 -m$(BITS) -fbacktrace
 
 # other useful gfortran options:
@@ -51,8 +51,6 @@ DEST_DIR    = ../DISCON
 ifeq ($(OS),Windows_NT) 
 
 ifeq ($(CYGWIN), 1)
-
-   FFLAGS := $(FFLAGS) -DIMPLICIT_DLLEXPORT
 
       # Cygwin.
    CFLAGS     := $(CFLAGS) -shared

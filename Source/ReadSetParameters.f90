@@ -233,7 +233,7 @@ CONTAINS
             ErrMsg  = 'CornerFreq must be greater than zero.'
         ENDIF
         
-        IF ((CntrPar%IPC_ControlMode > 0) .AND. (CntrPar%Y_ControlMode > 1)) THEN
+        IF ((CntrPar%IPC_ControlMode > 0) .AND. (CntrPar%Y_ControlMode == 2)) THEN
             aviFAIL = -1
             ErrMsg  = 'IPC control for load reductions and yaw-by-IPC cannot be activated simultaneously'
         ENDIF
