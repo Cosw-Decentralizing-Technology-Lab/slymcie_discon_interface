@@ -82,7 +82,7 @@ else
    FFLAGS := $(FFLAGS) -DIMPLICIT_DLLEXPORT
 
       # Linux
-   CFLAGS     := $(CFLAGS) -shared
+   CFLAGS     := $(CFLAGS) -shared -fno-lto
    LDFLAGS    := $(LDFLAGS) -shared
    DEL_CMD   = rm -f
    EXE_EXT   = _glin$(BITS).so
