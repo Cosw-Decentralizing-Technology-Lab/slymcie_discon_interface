@@ -21,11 +21,12 @@ SOURCES = BaramInterf.c
 SOURCE_FILE = Constants.f90 DRC_Types.f90 Functions.f90 Filters.f90 ReadSetParameters.f90 Controllers.f90 DISCON.f90
 
    # Name of compiler and flags for Baram interface.
-PYTHON_CONFIG = python3.6-config
-PYTHON_CONFIG_CFLAGS = $$($(PYTHON_CONFIG) --cflags)
-PYTHON_CONFIG_LDFLAGS = $$($(PYTHON_CONFIG) --ldflags)
+#PYTHON_CONFIG = python3.6-config
+#PYTHON_CONFIG_CFLAGS = $$($(PYTHON_CONFIG) --cflags)
+#PYTHON_CONFIG_LDFLAGS = $$($(PYTHON_CONFIG) --ldflags)
 CC			= gcc
-CFLAGS  	= -O2 -m$(BITS) $(PYTHON_CONFIG_CFLAGS)
+CFLAGS  	= -O2 -m$(BITS) -g -ggdb #$(PYTHON_CONFIG_CFLAGS)
+CLDFLAGS    = -L/usr/local/lib -lcurl -lcjson
 
    # Name of compiler to use and flags to use.
 FC      = gfortran
@@ -121,7 +122,7 @@ default:  $(BARAMI_LIB_EXT) $(INTER_DIR) $(DEST_DIR)/$(OUTPUT_NAME)$(EXE_EXT)
 
    # Build libbaraminterface shared library.
 $(BARAMI_LIB_EXT): $(SOURCES)
-	$(CC) $(CFLAGS) -o $(BARAMI_LIB_EXT) $(SOURCES) $(PYTHON_CONFIG_LDFLAGS)
+	$(CC) $(CFLAGS) -o $(BARAMI_LIB_EXT) $(SOURCES) $(CLDFLAGS) #$(PYTHON_CONFIG_LDFLAGS)
 
    # General rules for compliling the files.
 
