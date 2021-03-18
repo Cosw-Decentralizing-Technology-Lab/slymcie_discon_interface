@@ -11,6 +11,8 @@
 //#define HOST_COMMAND_URL "http://localhost:5000/command"
 #define HOST_COMMAND_URL "http://172.30.1.34:5000/command"
 #define COMMAND_CAL_MISALIGNMENT "cal_misalignment"
+#define PI 3.14159
+
 
 static int initFlag = 0;
 
@@ -241,25 +243,25 @@ static size_t _GetResponse(void *buffer, size_t size, size_t nmemb, void *userp)
 	pStatus = cJSON_GetObjectItemCaseSensitive(pResJson, statusName);
 	if (cJSON_IsString(pStatus) && (pStatus->valuestring != NULL)) {
 		if (strcmp(pStatus->valuestring, "success") == 0) {
-			pRes->status = 1;
-
 			// Get yaw misalignment.
 			pym = cJSON_GetObjectItemCaseSensitive(pResJson, ymName);
 			if (cJSON_IsNumber(pym)) {
+				pRes->status = 1;
 				pRes->ym = pym->valuedouble;
 			} else {
+				pRes->status = 0;
 				cJSON_Delete(pResJson);
 				fprintf(stderr, "Failed to get yaw misalignment value.\n");
 			}
 		} else {
 			pRes->status = 0;
 			fprintf(stderr, "Error occured: %s\n", pStatus->valuestring);
-			cJSON_Delete(pRes);
+			cJSON_Delete(pResJson);
 		}
 	} else {
 		pRes->status = -1;
 		fprintf(stderr, "Failed to get status.\n");
-		cJSON_Delete(pRes);
+		cJSON_Delete(pResJson);
 	}
 
 	return (size_t)(size * nmemb);
@@ -274,7 +276,7 @@ int CalculateYawMisalignment(double rdRaw
 	CURLcode res;
 	cJSON *pCom = NULL;
 	char *jsonString = NULL;
-	JsonResponse pRes;
+	JsonResponse jsonRes;
 	cJSON *pStatus = NULL;
 	cJSON *pym = NULL;
 	struct curl_slist *headers=NULL;
@@ -305,7 +307,7 @@ int CalculateYawMisalignment(double rdRaw
 	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 	curl_easy_setopt(curl, CURLOPT_POSTFIELDS, jsonString);
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, _GetResponse);
-	curl_easy_setopt(curl, CURLOPT_WRITEDATA, pRes);
+	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &jsonRes);
 
 	res = curl_easy_perform(curl);
 	if (res != CURLE_OK) {
@@ -315,9 +317,16 @@ int CalculateYawMisalignment(double rdRaw
 		return 0;
 	}
 
-	if (pRes.status == 1) {
-		*ym = pRes.ym;
+	if (jsonRes.status == 1 && jsonRes.ym != PI) {
+		*ym = jsonRes.ym;
+	} else {
+		free(jsonString);
+		curl_slist_free_all(headers);
+		return 0;
 	}
+
+	free(jsonString);
+	curl_slist_free_all(headers);
 
 	return 1;
 }

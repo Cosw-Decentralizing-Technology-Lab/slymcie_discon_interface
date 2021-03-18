@@ -203,7 +203,7 @@ CONTAINS
             avrSWAP(29) = 0                                      ! Yaw control parameter: 0 = yaw rate control
             IF (LocalVar%Time >= LocalVar%Y_YawEndT) THEN        ! Check if the turbine is currently yawing
                 avrSWAP(48) = 0.0                                ! Set yaw rate to zero
-                rdRaw = REAL(LocalVar%Y_M)
+                rdRaw = REAL(LocalVar%Y_MErr)
                 fwsRaw = REAL(LocalVar%WE_Vw)
                 rsRaw = REAL(LocalVar%RotSpeed)
                 powRaw = REAL(LocalVar%VS_GenPwr)
