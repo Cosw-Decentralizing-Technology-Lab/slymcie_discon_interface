@@ -7,6 +7,10 @@
 # This makefile works with mingw32-make.exe.                                     #
 #                                                                                #
 # It was designed to be used with discon.f90 for the Bladed DLL Interface        #
+#																			     #						 
+# This makefile is modified by Inwoo Chung(gutomitai@cosw.space)                 #
+# for the Baram(self-learning yaw misalignment control intelligent entity)       #
+# interface.                                                                     # 
 #================================================================================#
 
    # 32-bit or 64-bit?
