@@ -19,10 +19,13 @@ BITS = 64
    # Location of source files for the DLL.
    # You may need to change these for your DLL.
 
-DLL_DIR     = .
+DLL_DIR = .
 
 SOURCES = BaramInterf.c
 SOURCE_FILE = Constants.f90 DRC_Types.f90 Functions.f90 Filters.f90 ReadSetParameters.f90 Controllers.f90 DISCON.f90
+
+DTU_RWT_HOME_DIR = /cygdrive/d/workspace/dtu-10mw-rwt/aeroelastic_models/fast/DTU10MWRWT_FAST_v1.00/ReferenceModal
+SERVO_DATA_DIR = /cygdrive/d/workspace/dtu-10mw-rwt/aeroelastic_models/fast/DTU10MWRWT_FAST_v1.00/ReferenceModal/10MWRWT/ServoData
 
    # Name of compiler and flags for Baram interface.
 #PYTHON_CONFIG = python3.6-config
@@ -59,7 +62,7 @@ ifeq ($(CYGWIN), 1)
 
       # Cygwin.
    CFLAGS     := $(CFLAGS) -shared
-   LDFLAGS    := $(LDFLAGS) -mdll
+   LDFLAGS    := $(LDFLAGS) -shared
    DEL_CMD   = rm
    EXE_EXT   = _gwin$(BITS).dll
    INTER_DIR = Obj_win$(BITS)
@@ -67,7 +70,7 @@ ifeq ($(CYGWIN), 1)
    OBJ_EXT   = .obj
    PATH_SEP  = /
    SYS_FILE  = SysGnuWin
-   BARAMI_LIB_EXT = libbaram.so
+   BARAMI_LIB_EXT = baraminterface.dll
 else
       # Windows
    CFLAGS     := $(CFLAGS) -shared
@@ -150,9 +153,14 @@ $(DEST_DIR)/$(OUTPUT_NAME)$(EXE_EXT): $(ALL_OBJS) | $(INTER_DIR)
 	$(FC) $(LDFLAGS) -I $(INTER_DIR) -o $(DEST_DIR)/$(OUTPUT_NAME)$(EXE_EXT) \
 	$(foreach src, $(ALL_OBJS), $(addprefix $(INTER_DIR)/,$(src))) $(BARAMI_LIB_EXT)
 
+   # Install.
+install: $(BARAMI_LIB_EXT) $(DEST_DIR)/$(OUTPUT_NAME)$(EXE_EXT)
+	cp $(BARAMI_LIB_EXT) $(DTU_RWT_HOME_DIR)
+	cp $(DEST_DIR)/$(OUTPUT_NAME)$(EXE_EXT) $(SERVO_DATA_DIR)
+
    # Cleanup afterwards.
 
-clean:
+clean: 	
 	$(DEL_CMD) $(INTER_DIR)$(PATH_SEP)*.mod $(INTER_DIR)$(PATH_SEP)*.obj $(BARAMI_LIB_EXT)
 
 #gfortran -shared -O2 -m32 -fbacktrace -ffree-line-length-none -x f95-cpp-input -C ../CertTest/5MW_Baseline/ServoData/Source/DISCON.f90

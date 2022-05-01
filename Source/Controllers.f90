@@ -161,7 +161,7 @@ CONTAINS
         REAL(8) :: fwsRaw
         REAL(8) :: rsRaw
         REAL(8) :: powRaw
-        INTEGER(8) :: t = 0
+        INTEGER(8) :: t
         REAL(8) :: ym
         INTEGER(4) :: status
 
@@ -172,6 +172,8 @@ CONTAINS
         !..............................................................................................................................
         ! Yaw control
         !..............................................................................................................................
+        t = 0
+
         
         IF (CntrPar%Y_ControlMode == 1) THEN
             avrSWAP(29) = 0                                      ! Yaw control parameter: 0 = yaw rate control
