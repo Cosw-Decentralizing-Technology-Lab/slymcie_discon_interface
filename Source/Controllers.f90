@@ -155,7 +155,7 @@ CONTAINS
     
         USE DRC_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances
     
-        REAL(C_FLOAT), INTENT(INOUT) :: avrSWAP(*) ! The swap array, used to pass data to, and receive data from, the DLL controller.
+        REAL(C_FLOAT), INTENT(INOUT) :: avrSWAP(*) ! The  swap array, used to pass data to, and receive data from, the DLL controller.
     
         REAL(8) :: rdRaw
         REAL(8) :: fwsRaw
