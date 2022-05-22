@@ -203,23 +203,35 @@ CONTAINS
             END IF
 
             avrSWAP(29) = 0                                      ! Yaw control parameter: 0 = yaw rate control
-            IF (LocalVar%Time >= LocalVar%Y_YawEndT) THEN        ! Check if the turbine is currently yawing
-                avrSWAP(48) = 0.0                                ! Set yaw rate to zero
-                rdRaw = REAL(LocalVar%Y_MErr)
-                fwsRaw = REAL(LocalVar%WE_Vw)
-                rsRaw = REAL(LocalVar%RotSpeed)
-                powRaw = REAL(LocalVar%VS_GenPwr)
+            rdRaw = REAL(LocalVar%Y_MErr)
+            fwsRaw = REAL(LocalVar%WE_Vw)
+            rsRaw = REAL(LocalVar%RotSpeed)
+            powRaw = REAL(LocalVar%VS_GenPwr)
 
+            IF (LocalVar%Time >= LocalVar%Y_YawEndT) THEN        ! Check if the turbine is currently yawing
                 status = CalculateYawMisalignment(rdRaw, fwsRaw, rsRaw, powRaw, t, ym)
                 IF (status == 0) THEN
+                    avrSWAP(48) = 0.0                                ! Set yaw rate to zero
                     RETURN
                 END IF
 
                 IF (ABS(ym) >= CntrPar%Y_ErrThresh) THEN                                   ! double * float? Check if yaw misalignment surpasses the threshold
                     LocalVar%Y_YawEndT = ABS(ym/CntrPar%Y_Rate) + LocalVar%Time        ! Yaw to compensate for the slow low pass filtered error
+
+                    IF (ym >= 0.0) THEN
+                        avrSWAP(48) = CntrPar%Y_Rate
+                    ELSE
+                        avrSWAP(48) = -1.0 * CntrPar%Y_Rate
+                    END IF
+                ELSE
+                    avrSWAP(48) = 0.0                                ! Set yaw rate to zero
                 END IF
             ELSE
-                avrSWAP(48) = SIGN(CntrPar%Y_Rate, LocalVar%Y_MErr)        ! Set yaw rate to predefined yaw rate, the sign of the error is copied to the rate
+                status = CalculateYawMisalignment(rdRaw, fwsRaw, rsRaw, powRaw, t, ym)
+                IF (status == 0) THEN
+                    avrSWAP(48) = 0.0                                ! Set yaw rate to zero
+                    RETURN
+                END IF
             END IF
 
             IF (LocalVar%iStatus == -1) THEN

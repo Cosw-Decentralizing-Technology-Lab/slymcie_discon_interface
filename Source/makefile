@@ -24,8 +24,8 @@ DLL_DIR = .
 SOURCES = BaramInterf.c
 SOURCE_FILE = Constants.f90 DRC_Types.f90 Functions.f90 Filters.f90 ReadSetParameters.f90 Controllers.f90 DISCON.f90
 
-DTU_RWT_HOME_DIR = /cygdrive/d/workspace/dtu-10mw-rwt/aeroelastic_models/fast/DTU10MWRWT_FAST_v1.00/ReferenceModal
-SERVO_DATA_DIR = /cygdrive/d/workspace/dtu-10mw-rwt/aeroelastic_models/fast/DTU10MWRWT_FAST_v1.00/ReferenceModal/10MWRWT/ServoData
+DTU_RWT_HOME_DIR = /home/laputa/workspace/dtu-10mw-rwt_with_baram/aeroelastic_models/fast/DTU10MWRWT_FAST_v1.00/ReferenceModal
+SERVO_DATA_DIR = /home/laputa/workspace/dtu-10mw-rwt_with_baram/aeroelastic_models/fast/DTU10MWRWT_FAST_v1.00/ReferenceModal/10MWRWT/ServoData
 
    # Name of compiler and flags for Baram interface.
 #PYTHON_CONFIG = python3.6-config
