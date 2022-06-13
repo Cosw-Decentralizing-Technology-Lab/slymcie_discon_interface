@@ -106,6 +106,8 @@ static size_t _GetResponse(void *buffer, size_t size, size_t nmemb, void *userp)
 				cJSON_Delete(pResJson);
 				fprintf(stderr, "Failed to get yaw misalignment value.\n");
 			}
+		} else if(strcmp(pStatus->valuestring, "ym_not_calculated") == 0) {
+			pRes->status = 2;
 		} else {
 			pRes->status = 0;
 			fprintf(stderr, "Error occured: %s\n", pStatus->valuestring);
@@ -170,7 +172,7 @@ int CalculateYawMisalignment(double rdRaw
 		return 0;
 	}
 
-	if (jsonRes.status == 1 && jsonRes.ym != PI) {
+	if (jsonRes.status == 1) {
 		*ym = jsonRes.ym;
 	} else {
 		free(jsonString);
