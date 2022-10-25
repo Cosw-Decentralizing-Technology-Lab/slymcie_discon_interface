@@ -155,7 +155,7 @@ $(DEST_DIR)/$(OUTPUT_NAME)$(EXE_EXT): $(ALL_OBJS) | $(INTER_DIR)
 
    # Install.
 install: $(BARAMI_LIB_EXT) $(DEST_DIR)/$(OUTPUT_NAME)$(EXE_EXT)
-	cp $(BARAMI_LIB_EXT) $(DTU_RWT_HOME_DIR)
+	cp $(BARAMI_LIB_EXT) /usr/local/lib
 	cp $(DEST_DIR)/$(OUTPUT_NAME)$(EXE_EXT) $(SERVO_DATA_DIR)
 
    # Cleanup afterwards.
