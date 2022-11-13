@@ -2,8 +2,10 @@
 Self-learning yaw misalignment control intelligent entity is a Kalman filter and deep reinforcement learning based yaw control model for horizontal axis wind turbine. Using [Delft Research Controller (DRC) baseline wind turbine controller](https://github.com/TUDelft-DataDrivenControl/DRC_Fortran)[1], the DISCON to interface with the remote self-learning yaw misalignment control intelligent entity has been being developed. So with DNV GL BLADED, OpenFAST and etc, you can simulate or test the self-learning yaw misalignment control intelligent entity.
 
 ## Building and installing
-### Linux:
-This DISCON module is built, installed, and tested on Ubuntu 20.04.1. To build this module, prerequisites are mandatory as below.
+
+### Linux:
+
+This DISCON module is built, installed, and tested on Ubuntu 20.04.1. To build this module, prerequisites are mandatory as below.
 
 ```
 sudo apt install -y libcurl4-openssl-dev libcjson-dev
@@ -30,7 +32,7 @@ To interface with the self-learning yaw misalignment control intelligent entity,
 0					! F_NotchType		- 0 = disable, 1 = enable: notch on the measured generator speed, 
 0					! IPC_ControlMode	- Turn Individual Pitch Control (IPC) for fatigue load reductions (pitch contribution) 0 = off / 1 = (1P reductions) / 2 = (1P+2P reductions)
 1					! VS_ControlMode	- Generator torque control mode in above rated conditions, 0 = constant torque / 1 = constant power
-1					! Y_ControlMode		- Yaw control mode: (0 = no yaw control, 1 = yaw rate control, 2 = yaw-by-IPC, 3 = yaw rate control by baram)
+3					! Y_ControlMode		- Yaw control mode: (0 = no yaw control, 1 = yaw rate control, 2 = yaw-by-IPC, 3 = yaw rate control by baram)
 ```
 
 ### Reference
